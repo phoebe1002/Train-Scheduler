@@ -34,14 +34,11 @@
       <div class="jumbotron" style="background-color: black; color: white">
         <h1 class="text-center">Train Scheduler</h1>
         <h3 class="text-center">A tool you need to track train schedules</h3>
+        <div class="text-center" id ="clock"></div>
       </div>
      
-      <!-- <div class="text">Time displayed as moment.format('HH:mm:ss')  
-         -->
-        <div id ="clock">
-         </div>
-         <!-- <br>
-      </div> -->
+     
+
 
       <!-- Data Display Content -->
       <div class="row">
@@ -55,6 +52,8 @@
                     <th scope="col">Train Name</th>
                     <th scope="col">Destination</th>
                     <th scope="col">Frequency</th>
+                    <!-- Display First train to check calculation -->
+                    <th scope="col">First Train</th>
                     <th scope="col">Next Arrival</th>
                     <th scope="col">Minutes Away</th>
                   </tr>
@@ -91,7 +90,7 @@
                   <label for="frequency-input">Frequency(minutes)</label>
                   <input class="form-control" id="frequency-input" placeholder="30" type="number">
                 </div>
-                <button class="btn btn-primary float-right" id="add-train-btn">Submit</button>
+                <button class="btn btn-info float-right" id="add-train-btn">Submit</button>
               </form>
             </div>
           </div>

@@ -1,18 +1,3 @@
-function displayTime() {
-    var time = moment().format('HH:mm:ss');
-    $('#clock').html(time);
-    setTimeout(displayTime, 1000);
-}
-
-$(document).ready(function() {
-    displayTime();
-});
-
-// $("#start-input").text(moment(now).format('HH:mm:ss'));
-
-var now = moment().format('HH:mm:ss');
-console.log(now);
-
 // Initialize Firebase
 var config = {
 	apiKey: "AIzaSyARJyNdatc7XiECj36JikQ1SJJ_9H1YTWM",
@@ -88,52 +73,59 @@ database.ref().on("child_added", function(childSnapshot) {
   console.log(startTime);
   console.log(frequency);
 
-/*
-----------------------------------------------------
-firstTrain 	| Frequency | # of Train | Next Arrival 
-----------------------------------------------------
-8:00				| 30 mins		|			1			 |	8:30
-----------------------------------------------------
-8:00				| 30 mins		|			2	   	 |	9:00
-----------------------------------------------------
-*/
-
-	// Fomatting startTime 
+	// Format startTime 
 	var startTimeFormatted = moment(startTime, "HH:mm:ss").format("h:mm A");
-	// moment("01:15:00 PM", "h:mm:ss A").format("HH:mm:ss")
-	console.log('First train is ', startTimeFormatted)
+	console.log("First train is ", startTimeFormatted);
 
-	// Calculating followingTrain = startTime + frequency 
-	var followingTrain = moment(startTime, 'HH:mm:ss').add(frequency, 'minutes').format('HH:mm');
-	console.log("Follwing train is " + followingTrain);
-
-	// Getting current time
+	// Get current time
 	var currentTime = new moment().format("HH:mm");
 	console.log("Now is " + currentTime);
 
-	// Calculating how far away the coming train from the following train
-	// comingTrain = currentTime - followingTrain
-	var comingTrain = moment(currentTime, "HH:mm").diff(moment(followingTrain, "HH:mm"), 'minutes');
-	console.log("New arrival will be " + comingTrain);
+	// Declare variables to hold calculated fields
+	var nextArrival = "";
+	var minutesAway = "";
 
-	// Calculating the number of trip that coming train will be 
-	var tripNumber = comingTrain/frequency
-	console.log(tripNumber)
+	// Write a condition statement to check whether the first train has passed the current time
+	// If first train is ahead the currentTime, then get the startTime as nextArrival
+	if (currentTime < startTime){
 
-	// Calculating minutes away from the coming train
-	var minutesAway = Math.round((Math.ceil(tripNumber) - tripNumber) * frequency);
-	console.log("Minutes away will be" + minutesAway)
+		nextArrival = startTime;
+		minutesAway = moment(startTime, "HH:mm").diff(moment(currentTime, "HH:mm"), 'minutes');
+		console.log("the next train is " + minutesAway + " minutes away from currrent time");
+	} 
+	// If first train has passed, then use frequency to calcute the upcoming train
+	else {
+		// Calculate how far away the train has already run
+		// periodPassed = currentTime - startTime
+		var periodPassed = moment(currentTime, "HH:mm").diff(moment(startTime, "HH:mm"), 'minutes');
+		console.log("the train has already run" + periodPassed + " minutes away from first train");
 
-	// Calculating the nextArrival time for the comming train from currentTime
-	var nextArrival = moment(currentTime, 'HH:mm:ss').subtract(minutesAway, 'minutes').format('HH:mm');
-	console.log(nextArrival);
+		// Calculate the number of trips that the train has already run
+		var tripNumber = periodPassed/frequency
+		console.log("the train has run " + tripNumber +" times")
+
+		// Calculate minutes away from the next train based on the trip number which the next train will be
+		var minutesAway = Math.round((Math.ceil(tripNumber) - tripNumber) * frequency);
+		console.log("next train is " + minutesAway + " minutes away")
+
+		// Calculate the nextArrival time 
+		var nextArrival = moment(currentTime, "HH:mm").add(minutesAway, 'minutes').format("HH:mm");
+		console.log("next arrival will be " + nextArrival);
+
+	}
+
+	// Format the nextArrival 
+	var nextArrivalFormatted = moment(nextArrival, "HH:mm:ss").format("h:mm A");
+	console.log('Next train will be ', nextArrivalFormatted);
 
   // Create the new row
   var newRow = $("<tr>").append(
     $("<td>").text(trainName),
 		$("<td>").text(destination),
 		$("<td>").text(frequency),
-    $("<td>").text(nextArrival),
+		// Display First train to check calculation
+		$("<td>").text(startTime),
+    $("<td>").text(nextArrivalFormatted),
     $("<td>").text(minutesAway)
 	);
 
@@ -141,3 +133,13 @@ firstTrain 	| Frequency | # of Train | Next Arrival
   $("#train-table > tbody").append(newRow);
 });
 
+
+// Make a simple clock display on the page
+$(document).ready(function() {
+	displayTime();
+});
+function displayTime() {
+	var time = moment().format('HH:mm:ss');
+	$('#clock').html(time);
+	setTimeout(displayTime, 1000);
+}
