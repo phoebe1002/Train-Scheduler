@@ -1,11 +1,11 @@
 // Initialize Firebase
 var config = {
-	apiKey: "AIzaSyARJyNdatc7XiECj36JikQ1SJJ_9H1YTWM",
-	authDomain: "train-scheduler-344bf.firebaseapp.com",
-	databaseURL: "https://train-scheduler-344bf.firebaseio.com",
-	projectId: "train-scheduler-344bf",
-	storageBucket: "train-scheduler-344bf.appspot.com",
-	messagingSenderId: "115980083731"
+	apiKey: "AIzaSyAdbxFw7IcKIbIPac7I__eOWbTBiEOM5bI",
+	authDomain: "train-scheduler-app-2018.firebaseapp.com",
+	databaseURL: "https://train-scheduler-app-2018.firebaseio.com",
+	projectId: "train-scheduler-app-2018",
+	storageBucket: "train-scheduler-app-2018.appspot.com",
+	messagingSenderId: "724248859859"
 };
 firebase.initializeApp(config);
 
@@ -28,26 +28,27 @@ $("#add-train-btn").on("click", function(event) {
 	var frequency = $("#frequency-input").val().trim();
 
 	//Create local temporary obect for holding the train data
-	var newTrain = {
-		train_name: trainName,
-		destination: destination,
-		start_time: startTime,
-		frequency: frequency
-	};
+	// var newTrain = {
+	// 	train_name: trainName,
+	// 	destination: destination,
+	// 	start_time: startTime,
+	// 	frequency: frequency,
+	// };
 
 	// Uploads train data to the database 
-	database.ref().push({
+	database.ref('/scheduler').push({
 		train_name: trainName,
 		destination: destination,
 		start_time: startTime,
-		frequency: frequency
+		frequency: frequency,
+		dateAdded: firebase.database.ServerValue.TIMESTAMP
 	});
 
 	// Testing
-	console.log(newTrain.train_name);
-	console.log(newTrain.destination);
-	console.log(newTrain.start_time);
-	console.log(newTrain.frequency);
+	// console.log(newTrain.train_name);
+	// console.log(newTrain.destination);
+	// console.log(newTrain.start_time);
+	// console.log(newTrain.frequency);
 
 	//Clear text-boxes
 	$("#train-name-input").val("");
@@ -58,7 +59,7 @@ $("#add-train-btn").on("click", function(event) {
 });
 
 // 3. Create Firebase event for adding train to the database and a row in the html when a user adds an entry
-database.ref().on("child_added", function(childSnapshot) {
+database.ref('/scheduler').on("child_added", function(childSnapshot) {
   console.log(childSnapshot.val());
 
   // Store everything into a variable.
@@ -83,7 +84,7 @@ database.ref().on("child_added", function(childSnapshot) {
 
 	// Declare variables to hold calculated fields
 	var nextArrival = "";
-	var minutesAway = "";
+	var minutesAway = 0;
 
 	// Write a condition statement to check whether the first train has passed the current time
 	// If first train is ahead the currentTime, then get the startTime as nextArrival
@@ -118,21 +119,65 @@ database.ref().on("child_added", function(childSnapshot) {
 	var nextArrivalFormatted = moment(nextArrival, "HH:mm:ss").format("h:mm A");
 	console.log('Next train will be ', nextArrivalFormatted);
 
+	// Manipulate the reminder column
+	var reminder = "";
+	var timeAway = "";
+
+	if (minutesAway == 0) {
+		reminder = "Arriving";
+	} 
+	else if (60 <= minutesAway && minutesAway < 60 * 24 ) {
+		timeAway = timeConvertHR(minutesAway);
+		reminder = timeAway + " counting";
+	} 
+	else if (minutesAway >= 60 * 24 ) {
+		timeAway = timeConvertDHR(minutesAway);
+		reminder = timeAway + " counting";		
+	} else {
+		reminder = "within an hour";
+		timeAway = "";
+	}
+
   // Create the new row
   var newRow = $("<tr>").append(
-    $("<td>").text(trainName),
+    $("<td id='bold'>").text(trainName),
 		$("<td>").text(destination),
 		$("<td>").text(frequency),
 		// Display First train to check calculation
-		$("<td>").text(startTime),
+		// $("<td>").text(startTime),
     $("<td>").text(nextArrivalFormatted),
-    $("<td>").text(minutesAway)
+		$("<td>").text(minutesAway)
+		,
+		$("<td id='reminder'>").text(reminder)
 	);
 
   // Append the new row to the table
+	// var message = $("<tr>").append(
+	// 	$("<td id='reminder'>").text(reminder));
   $("#train-table > tbody").append(newRow);
+//   $("#train-table > tbody").append(message);
+//   $("#reminder").append(".col-name");
 });
 
+// Generate a function to convert timeAway into hours and minutes
+function timeConvertHR(t) {
+	var targetMins = t;
+	var tHour = (targetMins / 60);
+	var floorHours = Math.floor(tHour);
+	var tMins = (tHour - floorHours) * 60;
+	var roundMins = Math.round(tMins);
+	return floorHours + " hour(s) & " + roundMins + " minute(s)";
+	}
+
+// Generate a function to convert timeAway into days, hours and minutes
+function timeConvertDHR(t) {
+	var targetMins = t;
+	var tDay = (targetMins / 1440);
+	var floorDays = Math.floor(tDay);
+	var minsLeft = (tDay - floorDays) * 1440
+	var getHR = timeConvertHR(minsLeft);
+	return floorDays + " day(s), " + getHR;
+	}
 
 // Make a simple clock display on the page
 $(document).ready(function() {
