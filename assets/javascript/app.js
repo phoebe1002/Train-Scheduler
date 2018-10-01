@@ -19,21 +19,8 @@ $("#add-train-btn").on("click", function(event) {
 	// Get user input 
 	var trainName = $("#train-name-input").val().trim();
 	var destination = $("#destination-input").val().trim();
-
 	var startTime = moment($("#start-input").val().trim(), "hmm").format("HH:mm");
-
-	// var startTime = moment($("#start-input").val().trim()).format("HH:mm:ss");
-
-
 	var frequency = $("#frequency-input").val().trim();
-
-	//Create local temporary obect for holding the train data
-	// var newTrain = {
-	// 	train_name: trainName,
-	// 	destination: destination,
-	// 	start_time: startTime,
-	// 	frequency: frequency,
-	// };
 
 	// Uploads train data to the database 
 	database.ref('/scheduler').push({
@@ -44,12 +31,6 @@ $("#add-train-btn").on("click", function(event) {
 		dateAdded: firebase.database.ServerValue.TIMESTAMP
 	});
 
-	// Testing
-	// console.log(newTrain.train_name);
-	// console.log(newTrain.destination);
-	// console.log(newTrain.start_time);
-	// console.log(newTrain.frequency);
-
 	//Clear text-boxes
 	$("#train-name-input").val("");
 	$("#destination-input").val("");
@@ -58,7 +39,7 @@ $("#add-train-btn").on("click", function(event) {
 
 });
 
-// 3. Create Firebase event for adding train to the database and a row in the html when a user adds an entry
+//Create Firebase event for adding train to the database and a row in the html when a user adds an entry
 database.ref('/scheduler').on("child_added", function(childSnapshot) {
   console.log(childSnapshot.val());
 
@@ -68,7 +49,7 @@ database.ref('/scheduler').on("child_added", function(childSnapshot) {
   var startTime = childSnapshot.val().start_time;
   var frequency = childSnapshot.val().frequency;
 
-  // Testing user inputs
+  // Test user inputs
   console.log(trainName);
   console.log(destination);
   console.log(startTime);
@@ -89,9 +70,9 @@ database.ref('/scheduler').on("child_added", function(childSnapshot) {
 	// Write a condition statement to check whether the first train has passed the current time
 	// If first train is ahead the currentTime, then get the startTime as nextArrival
 	if (currentTime < startTime){
-
 		nextArrival = startTime;
 		minutesAway = moment(startTime, "HH:mm").diff(moment(currentTime, "HH:mm"), 'minutes');
+		//Test minutesAway
 		console.log("the next train is " + minutesAway + " minutes away from currrent time");
 	} 
 	// If first train has passed, then use frequency to calcute the upcoming train
@@ -99,24 +80,29 @@ database.ref('/scheduler').on("child_added", function(childSnapshot) {
 		// Calculate how far away the train has already run
 		// periodPassed = currentTime - startTime
 		var periodPassed = moment(currentTime, "HH:mm").diff(moment(startTime, "HH:mm"), 'minutes');
+		//Test periodPassed
 		console.log("the train has already run" + periodPassed + " minutes away from first train");
 
 		// Calculate the number of trips that the train has already run
 		var tripNumber = periodPassed/frequency
+		//Test tripNumbeer
 		console.log("the train has run " + tripNumber +" times")
 
 		// Calculate minutes away from the next train based on the trip number which the next train will be
 		var minutesAway = Math.round((Math.ceil(tripNumber) - tripNumber) * frequency);
+		// Test minutesAway
 		console.log("next train is " + minutesAway + " minutes away")
 
 		// Calculate the nextArrival time 
 		var nextArrival = moment(currentTime, "HH:mm").add(minutesAway, 'minutes').format("HH:mm");
+		// Test nextArrival
 		console.log("next arrival will be " + nextArrival);
 
 	}
 
 	// Format the nextArrival 
 	var nextArrivalFormatted = moment(nextArrival, "HH:mm:ss").format("h:mm A");
+	// Test nextArrivalFormatted
 	console.log('Next train will be ', nextArrivalFormatted);
 
 	// Manipulate the reminder column
@@ -128,11 +114,11 @@ database.ref('/scheduler').on("child_added", function(childSnapshot) {
 	} 
 	else if (60 <= minutesAway && minutesAway < 60 * 24 ) {
 		timeAway = timeConvertHR(minutesAway);
-		reminder = timeAway + " counting";
+		reminder = timeAway + " away";
 	} 
 	else if (minutesAway >= 60 * 24 ) {
 		timeAway = timeConvertDHR(minutesAway);
-		reminder = timeAway + " counting";		
+		reminder = timeAway + " away";		
 	} else {
 		reminder = "within an hour";
 		timeAway = "";
@@ -143,20 +129,12 @@ database.ref('/scheduler').on("child_added", function(childSnapshot) {
     $("<td id='bold'>").text(trainName),
 		$("<td>").text(destination),
 		$("<td>").text(frequency),
-		// Display First train to check calculation
-		// $("<td>").text(startTime),
     $("<td>").text(nextArrivalFormatted),
-		$("<td>").text(minutesAway)
-		,
+		$("<td>").text(minutesAway),
 		$("<td id='reminder'>").text(reminder)
 	);
 
-  // Append the new row to the table
-	// var message = $("<tr>").append(
-	// 	$("<td id='reminder'>").text(reminder));
   $("#train-table > tbody").append(newRow);
-//   $("#train-table > tbody").append(message);
-//   $("#reminder").append(".col-name");
 });
 
 // Generate a function to convert timeAway into hours and minutes
@@ -183,6 +161,7 @@ function timeConvertDHR(t) {
 $(document).ready(function() {
 	displayTime();
 });
+// Generate the clock function
 function displayTime() {
 	var time = moment().format('HH:mm:ss');
 	$('#clock').html(time);
