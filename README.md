@@ -7,4 +7,6 @@ This game has been deployed to GitHub Pages:https://phoebe1002.github.io/Train-S
 ## Technologies
 * HTML, CSS, Bootstrap
 * JavaScript and jQuery
+* Moment.js
+* Firebase
 
